@@ -9,7 +9,6 @@ import random
 
 pygame.init()
 
-# Isso é uma tupla, uma estrutura de dados imutável que pode conter vários valores
 PRETO = (0, 0, 0)
 BRANCO = (255, 255, 255)
 largura = 800
@@ -111,7 +110,6 @@ def main():
             texto1 = fonte.render(texto_str, True, cor_aleatoria())
             texto2 = fonte.render(texto2_str, True, cor_aleatoria())
 
-        # Desenhar
         tela.blit(texto1, rect1)
         tela.blit(texto2, rect2)
 
