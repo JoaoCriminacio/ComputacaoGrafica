@@ -46,7 +46,7 @@ def atualizar_colisao_borda(rect, vx, vy, fonte, texto_str):
         vy = random.randint(-1, 1)
         mudou = True
 
-    elif rect.left <= 0:
+    if rect.left <= 0:
         vx = random.randint(0, 1)
         vy = random.randint(-1, 1)
         mudou = True
@@ -56,7 +56,7 @@ def atualizar_colisao_borda(rect, vx, vy, fonte, texto_str):
         vy = random.randint(-1, 0)
         mudou = True
 
-    elif rect.top <= 0:
+    if rect.top <= 0:
         vx = random.randint(-1, 1)
         vy = random.randint(0, 1)
         mudou = True
