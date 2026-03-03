@@ -11,13 +11,13 @@ pygame.init()
 
 PRETO = (0, 0, 0)
 BRANCO = (255, 255, 255)
-largura = 800
-altura = 600
-tamanho_fonte = 50
-fps = 512
+LARGURA = 800
+ALTURA = 600
+TAMANHO_FONTE = 50
+FPS = 512
 
-texto_str = 'GEROMEL'
-texto2_str = 'KANNEMMAN'
+TEXTO_STR = 'GEROMEL'
+TEXTO2_STR = 'KANNEMMAN'
 
 def gerar_velocidade():
     while True:
@@ -41,7 +41,7 @@ def criar_texto(fonte, texto_str, cor, posicao):
 def atualizar_colisao_borda(rect, vx, vy, fonte, texto_str):
     mudou = False
 
-    if rect.right >= largura:
+    if rect.right >= LARGURA:
         vx = random.randint(-1, 0)
         vy = random.randint(-1, 1)
         mudou = True
@@ -51,7 +51,7 @@ def atualizar_colisao_borda(rect, vx, vy, fonte, texto_str):
         vy = random.randint(-1, 1)
         mudou = True
 
-    if rect.bottom >= altura:
+    if rect.bottom >= ALTURA:
         vx = random.randint(-1, 1)
         vy = random.randint(-1, 0)
         mudou = True
@@ -70,16 +70,16 @@ def atualizar_colisao_borda(rect, vx, vy, fonte, texto_str):
 def main():
     pygame.init()
 
-    tela = pygame.display.set_mode((largura, altura))
+    tela = pygame.display.set_mode((LARGURA, ALTURA))
     pygame.display.set_caption("Janela")
 
     clock = pygame.time.Clock()
-    fonte = pygame.font.SysFont(None, tamanho_fonte)
+    fonte = pygame.font.SysFont(None, TAMANHO_FONTE)
 
-    texto1, rect1 = criar_texto(fonte, texto_str, BRANCO, (200, 300))
+    texto1, rect1 = criar_texto(fonte, TEXTO_STR, BRANCO, (200, 300))
     vx1, vy1 = gerar_velocidade()
 
-    texto2, rect2 = criar_texto(fonte, texto2_str, BRANCO, (600, 300))
+    texto2, rect2 = criar_texto(fonte, TEXTO2_STR, BRANCO, (600, 300))
     vx2, vy2 = gerar_velocidade()
 
     rodando = True
@@ -95,8 +95,8 @@ def main():
         rect2.x += vx2
         rect2.y += vy2
 
-        vx1, vy1, novo_texto1 = atualizar_colisao_borda(rect1, vx1, vy1, fonte, texto_str)
-        vx2, vy2, novo_texto2 = atualizar_colisao_borda(rect2, vx2, vy2, fonte, texto2_str)
+        vx1, vy1, novo_texto1 = atualizar_colisao_borda(rect1, vx1, vy1, fonte, TEXTO_STR)
+        vx2, vy2, novo_texto2 = atualizar_colisao_borda(rect2, vx2, vy2, fonte, TEXTO2_STR)
 
         if novo_texto1:
             texto1 = novo_texto1
@@ -107,14 +107,14 @@ def main():
             vx1, vx2 = vx2, vx1
             vy1, vy2 = vy2, vy1
 
-            texto1 = fonte.render(texto_str, True, cor_aleatoria())
-            texto2 = fonte.render(texto2_str, True, cor_aleatoria())
+            texto1 = fonte.render(TEXTO_STR, True, cor_aleatoria())
+            texto2 = fonte.render(TEXTO2_STR, True, cor_aleatoria())
 
         tela.blit(texto1, rect1)
         tela.blit(texto2, rect2)
 
         pygame.display.flip()
-        clock.tick(fps)
+        clock.tick(FPS)
 
     pygame.quit()
     sys.exit()
