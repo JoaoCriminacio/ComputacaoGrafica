@@ -4,122 +4,201 @@ import sys
 
 pygame.init()
 
-PRETO=(0, 0, 0)
-BRANCO=(255, 255, 255)
-LARGURA=800
-ALTURA=600
+BLACK=(0, 0, 0)
+WHITE=(255, 255, 255)
+WIDTH=800
+HEIGHT=600
+RACKET_WIDTH=10
+RACKET_HEIGHT=60
+BALL_SIZE=7
 
-tela=pygame.display.set_mode((LARGURA, ALTURA))
+screen=pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pong")
 
-rodando=False
-def menu_principal():
-    global rodando
-    while not rodando:
+class Player:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.speed = 5
+        self.score = 0
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def move_up(self):
+        if self.rect.y > 0:
+            self.rect.y -= self.speed
+
+    def move_down(self):
+        if self.rect.y < HEIGHT - self.rect.height:
+            self.rect.y += self.speed
+
+    def drawRect(self, screen, color):
+        pygame.draw.rect(screen, color, self.rect)
+
+class Ball:
+    def __init__(self, x, y, size):
+        self.x = x
+        self.y = y
+        self.size = size
+        self.speed_x = random.choice([-5, 5])
+        self.speed_y = random.choice([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5])
+        self.rect = pygame.Rect(self.x, self.y, self.size, self.size)
+
+    def move(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+
+    def reset(self):
+        self.rect.x = WIDTH//2 - self.size//2
+        self.rect.y = HEIGHT//2 - self.size//2
+        self.speed_x = random.choice([-5, 5])
+        self.speed_y = random.choice([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5])
+
+    def drawCircle(self, screen, color):
+        pygame.draw.circle(screen, color, self.rect.center, self.size)
+
+class InputController:
+    def handle(self, player):
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_UP]:
+            player.move_up()
+        if keys[pygame.K_DOWN]:
+            player.move_down()
+
+class CpuController:
+    def update(self, player, ball):
+        if player.rect.centery < ball.rect.centery:
+            player.move_down()
+        elif player.rect.centery > ball.rect.centery:
+            player.move_up()
+
+class CollisionManager:
+    def handle_ball_collision(self, ball, player1, player2):
+        if ball.rect.colliderect(player1.rect) or ball.rect.colliderect(player2.rect):
+            ball.speed_x *= -1
+
+        if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
+            ball.speed_y *= -1
+
+    def handle_score(self, ball, player1, player2):
+        if ball.rect.x <= 0:
+            player2.score += 1
+            ball.reset()
+
+        if ball.rect.x >= WIDTH - ball.size:
+            player1.score += 1
+            ball.reset()
+
+class Menu:
+    def __init__(self, screen):
+        self.screen = screen
+        self.running = True
+
+        self.title_font = pygame.font.SysFont(None, 50)
+        self.option_font = pygame.font.SysFont(None, 26)
+
+    def handle_events(self):
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
             if evento.type == pygame.KEYDOWN:
                 if evento.key == pygame.K_SPACE:
-                    rodando = True
-                    return
+                    self.running = False
 
-        tela.fill(PRETO)
-        fonte = pygame.font.SysFont(None, 50)
-        texto = fonte.render("Pong", True, BRANCO)
-        rect = texto.get_rect(center=(LARGURA//2, ALTURA//2))
-        tela.blit(texto, rect)
+    def draw(self):
+        self.screen.fill(BLACK)
 
-        font_blynk = pygame.font.SysFont(None, 26)
+        texto = self.title_font.render("Pong", True, WHITE)
+        rect = texto.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        self.screen.blit(texto, rect)
+
         tempo = pygame.time.get_ticks()
         if tempo % 2000 < 1000:
-            texto_blynk = font_blynk.render("Pressione ESPACO para jogar", True, BRANCO)
-            rect_blynk = texto_blynk.get_rect(center=(LARGURA//2, ALTURA//2 + 50))
-            tela.blit(texto_blynk, rect_blynk)
+            texto_blynk = self.option_font.render("Pressione ESPAÇO para jogar", True, WHITE)
+            rect_blynk = texto_blynk.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+            self.screen.blit(texto_blynk, rect_blynk)
 
         pygame.display.flip()
 
-clock=pygame.time.Clock()
+    def run(self):
+        while self.running:
+            self.handle_events()
+            self.draw()
 
-RAQUETE_LARGURA=10
-RAQUETE_ALTURA=60
-TAMANHO_BOLA=7
+        return True
 
-player1_x=15
-player1_y=ALTURA//2 - RAQUETE_ALTURA//2
+class Game:
+    def __init__(self):
+        self.clock = pygame.time.Clock()
+        self.running = True
 
-player2_x=LARGURA - 15 - RAQUETE_LARGURA
-player2_y=ALTURA//2 - RAQUETE_ALTURA//2
+        self.player1 = Player(15, HEIGHT//2 - RACKET_HEIGHT//2, RACKET_WIDTH, RACKET_HEIGHT)
+        self.player2 = Player(WIDTH - 15 - RACKET_WIDTH, HEIGHT//2 - RACKET_HEIGHT//2, RACKET_WIDTH, RACKET_HEIGHT)
+        self.ball = Ball(WIDTH//2 - BALL_SIZE//2, HEIGHT//2 - BALL_SIZE//2, BALL_SIZE)
 
-bola_x=LARGURA//2 - TAMANHO_BOLA//2
-bola_y=ALTURA//2 - TAMANHO_BOLA//2
+        self.input_controller = InputController()
+        self.cpu_controller = CpuController()
+        self.collision_manager = CollisionManager()
 
-velocidade_bola_x= random.choices([-5, 5])[0]
-velocidade_bola_y= random.choices([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5])[0]
+    def handle_events(self):
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                self.running = False
 
-score_player1 = 0
-score_player2 = 0
+    def update(self):
+        self.ball.move()
 
-menu_principal()
+        self.input_controller.handle(self.player1)
+        self.cpu_controller.update(self.player2, self.ball)
 
-while rodando:
-    for evento in pygame.event.get():
-        if evento.type == pygame.QUIT:
-            rodando=False
+        self.collision_manager.handle_ball_collision(
+            self.ball, self.player1, self.player2
+        )
 
-    tela.fill(PRETO)
+        self.collision_manager.handle_score(
+            self.ball, self.player1, self.player2
+        )
 
-    bola_x += velocidade_bola_x
-    bola_y += velocidade_bola_y
+    def draw(self, screen):
+        screen.fill(BLACK)
 
-    bola_rect = pygame.Rect(bola_x, bola_y, TAMANHO_BOLA, TAMANHO_BOLA)
-    player1_rect = pygame.Rect(player1_x, player1_y, RAQUETE_LARGURA, RAQUETE_ALTURA)
-    player2_rect = pygame.Rect(player2_x, player2_y, RAQUETE_LARGURA, RAQUETE_ALTURA)
+        self.player1.drawRect(screen, WHITE)
+        self.player2.drawRect(screen, WHITE)
+        self.ball.drawCircle(screen, WHITE)
 
-    if bola_rect.colliderect(player1_rect) or bola_rect.colliderect(player2_rect):
-        velocidade_bola_x = -velocidade_bola_x
+        font_score = pygame.font.SysFont(None, 36)
+        score_text = font_score.render(
+            f"{self.player1.score} - {self.player2.score}", True, WHITE
+        )
+        screen.blit(score_text, score_text.get_rect(center=(WIDTH//2, 30)))
 
-    if bola_y <= 0 or bola_y >= ALTURA - TAMANHO_BOLA:
-        velocidade_bola_y = -velocidade_bola_y
+        pygame.display.flip()
 
-    if bola_x <= 0:
-        score_player2 += 1
-        bola_x = LARGURA//2 - TAMANHO_BOLA//2
-        bola_y = ALTURA//2 - TAMANHO_BOLA//2
-        velocidade_bola_x = -velocidade_bola_x
-        velocidade_bola_y = random.choices([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5])[0]
-    
-    if bola_x >= LARGURA - TAMANHO_BOLA:
-        score_player1 += 1
-        bola_x = LARGURA//2 - TAMANHO_BOLA//2
-        bola_y = ALTURA//2 - TAMANHO_BOLA//2
-        velocidade_bola_x = -velocidade_bola_x
-        velocidade_bola_y = random.choices([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5])[0]
+    def run(self):
+        while self.running:
+            self.handle_events()
+            self.update()
+            self.draw(screen)
+            self.clock.tick(60)
 
-    if player2_y + RAQUETE_ALTURA//2 < bola_y:
-        player2_y += 5
-    elif player2_y + RAQUETE_ALTURA//2 > bola_y:
-        player2_y -= 5
+            if self.player1.score >= 10 or self.player2.score >= 10:
+                self.running = False
 
-    if player2_y < 0:
-        player2_y = 0
-    elif player2_y > ALTURA - RAQUETE_ALTURA:
-        player2_y = ALTURA - RAQUETE_ALTURA
+def main():
+    while True:
+        menu = Menu(screen)
+        if not menu.run():
+            break
 
-    pygame.draw.rect(tela, BRANCO, (player1_x, player1_y, RAQUETE_LARGURA, RAQUETE_ALTURA))
-    pygame.draw.rect(tela, BRANCO, (player2_x, player2_y, RAQUETE_LARGURA, RAQUETE_ALTURA))
-    pygame.draw.circle(tela, BRANCO, (bola_x, bola_y), TAMANHO_BOLA)
+        game = Game()
+        game.run()
 
-    font_score = pygame.font.SysFont(None, 36)
-    score_text = font_score.render(f"{score_player1} - {score_player2}", True, BRANCO)
-    tela.blit(score_text, score_text.get_rect(center=(LARGURA//2, 30)))
+    pygame.quit()
+    sys.exit()
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP] and player1_y > 0:
-        player1_y -= 5
-    if keys[pygame.K_DOWN] and player1_y < ALTURA - RAQUETE_ALTURA:
-        player1_y += 5
-
-    pygame.display.flip()
-    clock.tick(60)
+if __name__ == "__main__":
+    main()
