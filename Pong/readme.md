@@ -145,11 +145,39 @@ class Menu:
     def __init__(self, screen):
         self.screen = screen
         self.running = True
+        self.title_font = pygame.font.SysFont(None, 50)
+        self.option_font = pygame.font.SysFont(None, 26)
+
+    def handle_events(self):
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    self.running = False
+
+    def draw(self):
+        self.screen.fill(BLACK)
+        texto = self.title_font.render("Pong", True, WHITE)
+        rect = texto.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        self.screen.blit(texto, rect)
+
+        tempo = pygame.time.get_ticks()
+        if tempo % 2000 < 1000:
+            texto_blynk = self.option_font.render("Pressione ESPAÇO para jogar", True, WHITE)
+            rect_blynk = texto_blynk.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+            self.screen.blit(texto_blynk, rect_blynk)
+
+        pygame.display.flip()
 
     def run(self):
         while self.running:
             self.handle_events()
             self.draw()
+
+        return True
 ```
 
 #### Classe `Game`
@@ -157,14 +185,24 @@ class Menu:
 
 ```Python
 class Game:
-     def __init__(self, screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics):
+    def __init__(self, screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics):
         self.screen = screen
+        self.clock = pygame.time.Clock()
+        self.running = True
         self.player1 = player1
         self.player2 = player2
         self.ball = ball
         self.ctrl_player1 = ctrl_player1
         self.ctrl_player2 = ctrl_player2
         self.physics = ctrl_physics
+        self.font_score = pygame.font.SysFont(None, 36)
+
+    def handle_events(self):
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                self.running = False
+                pygame.quit()
+                sys.exit()
 
     def update(self):
         self.ball.move()
@@ -172,6 +210,26 @@ class Game:
         self.ctrl_player2.update(self.player2, self.ball)
         self.physics.handle_collisions(self.ball, self.player1, self.player2)
         self.physics.check_scoring(self.ball, self.player1, self.player2)
+        if self.player1.score >= 10 or self.player2.score >= 10:
+            self.running = False
+
+    def draw(self):
+        self.screen.fill(BLACK)
+        self.player1.draw(self.screen, WHITE)
+        self.player2.draw(self.screen, WHITE)
+        self.ball.draw(self.screen, WHITE)
+        score_text = self.font_score.render(
+            f"{self.player1.score} - {self.player2.score}", True, WHITE
+        )
+        self.screen.blit(score_text, score_text.get_rect(center=(WIDTH//2, 30)))
+        pygame.display.flip()
+
+    def run(self):
+        while self.running:
+            self.handle_events()
+            self.update()
+            self.draw()
+            self.clock.tick(60)
 ```
 
 #### Função `main()`
