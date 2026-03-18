@@ -2,8 +2,11 @@
 
 Este projeto é uma pequena simulação feita em **Python** utilizando a biblioteca **Pygame**, onde dois textos se movimentam pela tela, quicam nas bordas da janela e colidem entre si trocando de direção.
 
-Quando eles batem:
+<p align="center">
+  <img src="./assets/colisao-de-objetos.gif" alt="Colisão de Objetos Gif" width=500>
+</p>
 
+Quando eles batem:
 * Mudam de direção.
 * Trocam suas velocidades.
 * Mudam de cor aleatoriamente.

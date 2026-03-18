@@ -1,8 +1,3 @@
-# python -m venv venv
-# source venv/Scripts/activate
-# pip freeze
-# pip install pygame
-
 import pygame
 import sys
 import random
