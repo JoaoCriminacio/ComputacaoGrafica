@@ -45,14 +45,14 @@ class Menu:
         return True
 
 class Game:
-    def __init__(self, screen, ctrl_player1, ctrl_player2, ctrl_physics):
+    def __init__(self, screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics):
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.running = True
 
-        self.player1 = Player(15, HEIGHT//2 - RACKET_HEIGHT//2, RACKET_WIDTH, RACKET_HEIGHT)
-        self.player2 = Player(WIDTH - 15 - RACKET_WIDTH, HEIGHT//2 - RACKET_HEIGHT//2, RACKET_WIDTH, RACKET_HEIGHT)
-        self.ball = Ball(WIDTH//2 - BALL_SIZE//2, HEIGHT//2 - BALL_SIZE//2, BALL_SIZE)
+        self.player1 = player1
+        self.player2 = player2
+        self.ball = ball
 
         self.ctrl_player1 = ctrl_player1
         self.ctrl_player2 = ctrl_player2
@@ -109,11 +109,15 @@ def main():
         menu = Menu(screen)
         menu.run()
 
-        p1_controller = KeyboardController()
-        p2_controller = CpuController()
+        player1 = Player(15, HEIGHT//2 - RACKET_HEIGHT//2, RACKET_WIDTH, RACKET_HEIGHT)
+        player2 = Player(WIDTH - 15 - RACKET_WIDTH, HEIGHT//2 - RACKET_HEIGHT//2, RACKET_WIDTH, RACKET_HEIGHT)
+        ball = Ball(WIDTH//2 - BALL_SIZE//2, HEIGHT//2 - BALL_SIZE//2, BALL_SIZE)
+
+        ctrl_player1 = KeyboardController()
+        ctrl_player2 = CpuController()
         physics = PhysicsManager()
 
-        game = Game(screen, p1_controller, p2_controller, physics)
+        game = Game(screen, player1, player2, ball, ctrl_player1, ctrl_player2, physics)
         game.run()
 
 if __name__ == "__main__":
