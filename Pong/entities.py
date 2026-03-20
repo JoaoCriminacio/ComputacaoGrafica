@@ -69,7 +69,8 @@ class PhysicsManager:
 
         if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
             ball.speed_y *= -1
-
+    
+class ScoreManager:
     def check_scoring(self, ball, player1, player2):
         if ball.rect.x <= 0:
             player2.score += 1

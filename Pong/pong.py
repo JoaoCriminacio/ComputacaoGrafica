@@ -1,7 +1,7 @@
 import pygame
 import sys
 from entities import (
-    Player, Ball, KeyboardController, CpuController, PhysicsManager,
+    Player, Ball, KeyboardController, CpuController, PhysicsManager, ScoreManager,
     WIDTH, HEIGHT, BLACK, WHITE, RACKET_WIDTH, RACKET_HEIGHT, BALL_SIZE
 )
 
@@ -45,7 +45,7 @@ class Menu:
         return True
 
 class Game:
-    def __init__(self, screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics):
+    def __init__(self, screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics, ctrl_score):
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.running = True
@@ -57,6 +57,7 @@ class Game:
         self.ctrl_player1 = ctrl_player1
         self.ctrl_player2 = ctrl_player2
         self.physics = ctrl_physics
+        self.score = ctrl_score
 
         self.font_score = pygame.font.SysFont(None, 36)
 
@@ -74,9 +75,9 @@ class Game:
         self.ctrl_player2.update(self.player2, self.ball)
 
         self.physics.handle_collisions(self.ball, self.player1, self.player2)
-        self.physics.check_scoring(self.ball, self.player1, self.player2)
+        self.score.check_scoring(self.ball, self.player1, self.player2)
 
-        if self.player1.score >= 10 or self.player2.score >= 10:
+        if self.player1.score >= 2 or self.player2.score >= 2:
             self.running = False
 
     def draw(self):
@@ -115,9 +116,10 @@ def main():
 
         ctrl_player1 = KeyboardController()
         ctrl_player2 = CpuController()
-        physics = PhysicsManager()
+        ctrl_physics = PhysicsManager()
+        ctrl_score = ScoreManager()
 
-        game = Game(screen, player1, player2, ball, ctrl_player1, ctrl_player2, physics)
+        game = Game(screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics, ctrl_score)
         game.run()
 
 if __name__ == "__main__":
