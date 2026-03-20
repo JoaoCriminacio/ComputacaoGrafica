@@ -111,27 +111,46 @@ class CpuController:
 ```
 
 #### Classe `PhysicsManager`
-Responsável por gerenciar todas as colisões físicas e a lógica de pontuação do jogo.
+Responsável por gerenciar todas as colisões físicas e aumentar a velocidade da bola a cada interação.
 
 ```Python
 class PhysicsManager:
+    def __init__(self):
+        self.MAX_SPEED = 20
+        self.SPEED_MULTIPLIER = 1.05
+
     def handle_collisions(self, ball, player1, player2):
-        if ball.rect.colliderect(player1.rect) or ball.rect.colliderect(player2.rect):
+        if ball.rect.colliderect(player1.rect):
+            ball.rect.left = player1.rect.right
             ball.speed_x *= -1
+            ball.speed_x *= self.SPEED_MULTIPLIER
+            ball.speed_y *= self.SPEED_MULTIPLIER
+
+        elif ball.rect.colliderect(player2.rect):
+            ball.rect.right = player2.rect.left
+            ball.speed_x *= -1
+            ball.speed_x *= self.SPEED_MULTIPLIER
+            ball.speed_y *= self.SPEED_MULTIPLIER
 
         if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
             ball.speed_y *= -1
 
+        ball.speed_x = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_x))
+        ball.speed_y = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_y))
+```
+
+#### Classe `ScoreManager`
+Responsável por gerenciar o placar do jogo.
+
+```Python
+class ScoreManager:
     def check_scoring(self, ball, player1, player2):
         if ball.rect.x <= 0:
             player2.score += 1
             ball.reset()
-            return True
         if ball.rect.x >= WIDTH - ball.size:
             player1.score += 1
             ball.reset()
-            return True
-        return False
 ```
 
 ### 📄 `pong.py`
@@ -176,8 +195,6 @@ class Menu:
         while self.running:
             self.handle_events()
             self.draw()
-
-        return True
 ```
 
 #### Classe `Game`

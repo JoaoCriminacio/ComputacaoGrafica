@@ -42,8 +42,6 @@ class Menu:
             self.handle_events()
             self.draw()
 
-        return True
-
 class Game:
     def __init__(self, screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics, ctrl_score):
         self.screen = screen
