@@ -77,7 +77,7 @@ class Game:
         self.physics.handle_collisions(self.ball, self.player1, self.player2)
         self.score.check_scoring(self.ball, self.player1, self.player2)
 
-        if self.player1.score >= 2 or self.player2.score >= 2:
+        if self.player1.score >= 10 or self.player2.score >= 10:
             self.running = False
 
     def draw(self):

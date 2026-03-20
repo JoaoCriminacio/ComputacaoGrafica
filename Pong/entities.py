@@ -75,9 +75,6 @@ class ScoreManager:
         if ball.rect.x <= 0:
             player2.score += 1
             ball.reset()
-            return True
         if ball.rect.x >= WIDTH - ball.size:
             player1.score += 1
             ball.reset()
-            return True
-        return False
