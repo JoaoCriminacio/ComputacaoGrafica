@@ -66,27 +66,36 @@ class PhysicsManager:
     def __init__(self):
         self.MAX_SPEED = 20
         self.SPEED_MULTIPLIER = 1.05
+        self.ANGLE_VARIATION = 3
+
+    def random_bounce(self, current_speed):
+        factor = random.randint(-self.ANGLE_VARIATION, self.ANGLE_VARIATION)
+        return current_speed + factor
 
     def handle_collisions(self, ball, player1, player2):
         hit = False
 
         if ball.rect.colliderect(player1.rect):
             ball.rect.left = player1.rect.right
-            ball.speed_x *= -1
-            ball.speed_x *= self.SPEED_MULTIPLIER
+            ball.speed_x *= -self.SPEED_MULTIPLIER
             ball.speed_y *= self.SPEED_MULTIPLIER
             hit = True
+            ball.speed_y = self.random_bounce(ball.speed_y)
 
         elif ball.rect.colliderect(player2.rect):
             ball.rect.right = player2.rect.left
-            ball.speed_x *= -1
-            ball.speed_x *= self.SPEED_MULTIPLIER
+            ball.speed_x *= -self.SPEED_MULTIPLIER
             ball.speed_y *= self.SPEED_MULTIPLIER
             hit = True
 
         if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
             ball.speed_y *= -1
             hit = True
+            ball.speed_y = self.random_bounce(ball.speed_y)
+
+        if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
+            ball.speed_y *= -1
+            ball.speed_y = self.random_bounce(ball.speed_y)
 
         ball.speed_x = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_x))
         ball.speed_y = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_y))
