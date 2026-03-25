@@ -79,23 +79,20 @@ class PhysicsManager:
             ball.rect.left = player1.rect.right
             ball.speed_x *= -self.SPEED_MULTIPLIER
             ball.speed_y *= self.SPEED_MULTIPLIER
+            ball.speed_y = self.random_bounce(ball.speed_y)  # estava faltando no player2
             hit = True
-            ball.speed_y = self.random_bounce(ball.speed_y)
 
         elif ball.rect.colliderect(player2.rect):
             ball.rect.right = player2.rect.left
             ball.speed_x *= -self.SPEED_MULTIPLIER
             ball.speed_y *= self.SPEED_MULTIPLIER
+            ball.speed_y = self.random_bounce(ball.speed_y)
             hit = True
 
-        if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
+        if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:  # bloco duplicado removido
             ball.speed_y *= -1
+            ball.speed_y = self.random_bounce(ball.speed_y)  # speed_y não acelera na parede
             hit = True
-            ball.speed_y = self.random_bounce(ball.speed_y)
-
-        if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
-            ball.speed_y *= -1
-            ball.speed_y = self.random_bounce(ball.speed_y)
 
         ball.speed_x = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_x))
         ball.speed_y = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_y))
