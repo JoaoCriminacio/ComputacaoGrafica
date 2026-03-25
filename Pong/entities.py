@@ -8,6 +8,7 @@ HEIGHT=600
 RACKET_WIDTH=10
 RACKET_HEIGHT=60
 BALL_SIZE=7
+MIN_SPEED_Y = 5
 
 class Player:
     def __init__(self, x, y, width, height):
@@ -58,7 +59,7 @@ class BallFactory:
             b = random.randint(80, 255)
             return (r, g, b)
 
-    def create_decoys(origin: Ball, count: int = 3):
+    def create_decoys(origin, count = 3):
         decoys = []
         for _ in range(count):
             color = BallFactory.random_color()
@@ -92,7 +93,7 @@ class MultiplicationManager:
     def __init__(self):
         self._timer = MultiplicationTimer()
 
-    def notify_paddle_hit(self, ball: Ball):
+    def notify_paddle_hit(self, ball):
         if not self._timer.is_ready():
             return None
         if not ball.is_real:
@@ -117,38 +118,61 @@ class CpuController:
             player.move_up()
 
 class PhysicsManager:
-    def __init__(self, multiplication_manager = None):
+    def __init__(self, multiplication_manager=None):
         self.MAX_SPEED = 20
         self.SPEED_MULTIPLIER = 1.05
+        self.ANGLE_VARIATION = 3
         self._mult = multiplication_manager
 
-    def handle_collisions(self, ball: Ball, player1: Player, player2: Player):
-        fragments = None
+    def random_bounce(self, current_speed):
+        factor = random.randint(-self.ANGLE_VARIATION, self.ANGLE_VARIATION)
+        new_speed = current_speed + factor
+
+        if abs(new_speed) < MIN_SPEED_Y:
+            new_speed = MIN_SPEED_Y * (1 if new_speed >= 0 else -1)
+
+        return new_speed
+
+    def handle_collisions(self, ball, player1, player2):
+        hit = False
+        decoys = None
 
         if ball.rect.colliderect(player1.rect):
             ball.rect.left = player1.rect.right
-            ball.speed_x = abs(ball.speed_x) * self.SPEED_MULTIPLIER
+            ball.speed_x *= -self.SPEED_MULTIPLIER
             ball.speed_y *= self.SPEED_MULTIPLIER
+            ball.speed_y = self.random_bounce(ball.speed_y)
+            hit = True
             if self._mult:
-                fragments = self._mult.notify_paddle_hit(ball)
+                decoys = self._mult.notify_paddle_hit(ball)
 
         elif ball.rect.colliderect(player2.rect):
             ball.rect.right = player2.rect.left
-            ball.speed_x = -abs(ball.speed_x) * self.SPEED_MULTIPLIER
+            ball.speed_x *= -self.SPEED_MULTIPLIER
             ball.speed_y *= self.SPEED_MULTIPLIER
+            ball.speed_y = self.random_bounce(ball.speed_y)
+            hit = True
             if self._mult:
-                fragments = self._mult.notify_paddle_hit(ball)
+                decoys = self._mult.notify_paddle_hit(ball)
 
-        if ball.rect.y <= 0 or ball.rect.y >= HEIGHT - ball.size:
+        if ball.rect.y <= 0:
+            ball.rect.y = 0
             ball.speed_y *= -1
+            ball.speed_y = self.random_bounce(ball.speed_y)
+            hit = True
+        elif ball.rect.y >= HEIGHT - ball.size:
+            ball.rect.y = HEIGHT - ball.size
+            ball.speed_y *= -1
+            ball.speed_y = self.random_bounce(ball.speed_y)
+            hit = True
 
         ball.speed_x = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_x))
         ball.speed_y = max(-self.MAX_SPEED, min(self.MAX_SPEED, ball.speed_y))
  
-        return fragments
+        return hit, decoys
     
 class ScoreManager:
-    def check_scoring(self, balls: list, player1: Player, player2: Player):
+    def check_scoring(self, balls, player1, player2):
         real_scored = False
 
         for ball in balls:
@@ -164,7 +188,7 @@ class ScoreManager:
                 real_scored = True
 
         if real_scored:
-            return [b for b in balls if b.is_real]
+            return True, [b for b in balls if b.is_real]
 
         surviving = []
         for ball in balls:
@@ -173,4 +197,24 @@ class ScoreManager:
             elif 0 <= ball.rect.x <= WIDTH - ball.size:
                 surviving.append(ball)
 
-        return surviving
+        return False, surviving
+    
+class SoundManager:
+    def __init__(self):
+        pygame.mixer.init()
+ 
+        self.hit_sound = pygame.mixer.Sound("./assets/hit.mp3")
+        self.goal_sound = pygame.mixer.Sound("./assets/goal.mp3")
+        self.music = pygame.mixer.Sound("./assets/music.mp3")
+ 
+    def play_hit(self):
+        self.hit_sound.play()
+ 
+    def play_goal(self):
+        self.goal_sound.play()
+ 
+    def start_music(self):
+        self.music.play(loops=-1)
+ 
+    def stop_music(self):
+        self.music.stop()
