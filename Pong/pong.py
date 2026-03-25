@@ -2,7 +2,7 @@ import pygame
 import sys
 from entities import (
     Player, Ball, KeyboardController, CpuController, PhysicsManager, ScoreManager,
-    WIDTH, HEIGHT, BLACK, WHITE, RACKET_WIDTH, RACKET_HEIGHT, BALL_SIZE
+    SoundManager, WIDTH, HEIGHT, BLACK, WHITE, RACKET_WIDTH, RACKET_HEIGHT, BALL_SIZE
 )
 
 class Menu:
@@ -43,7 +43,18 @@ class Menu:
             self.draw()
 
 class Game:
-    def __init__(self, screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics, ctrl_score):
+    def __init__(
+            self, 
+            screen, 
+            player1, 
+            player2, 
+            ball, 
+            ctrl_player1, 
+            ctrl_player2, 
+            ctrl_physics, 
+            ctrl_score, 
+            sound_manager
+    ):
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.running = True
@@ -56,6 +67,7 @@ class Game:
         self.ctrl_player2 = ctrl_player2
         self.physics = ctrl_physics
         self.score = ctrl_score
+        self.sound_manager = sound_manager
 
         self.font_score = pygame.font.SysFont(None, 36)
 
@@ -72,8 +84,14 @@ class Game:
         self.ctrl_player1.update(self.player1)
         self.ctrl_player2.update(self.player2, self.ball)
 
-        self.physics.handle_collisions(self.ball, self.player1, self.player2)
-        self.score.check_scoring(self.ball, self.player1, self.player2)
+        hit = self.physics.handle_collisions(self.ball, self.player1, self.player2)
+        goal = self.score.check_scoring(self.ball, self.player1, self.player2)
+
+        if hit:
+            self.sound_manager.play_hit()
+
+        if goal:
+            self.sound_manager.play_goal()
 
         if self.player1.score >= 10 or self.player2.score >= 10:
             self.running = False
@@ -93,11 +111,15 @@ class Game:
         pygame.display.flip()
 
     def run(self):
+        self.sound_manager.start_music()
+
         while self.running:
             self.handle_events()
             self.update()
             self.draw()
             self.clock.tick(60)
+
+        self.sound_manager.stop_music()
 
 def main():
     pygame.init()
@@ -116,8 +138,9 @@ def main():
         ctrl_player2 = CpuController()
         ctrl_physics = PhysicsManager()
         ctrl_score = ScoreManager()
+        sound_manager = SoundManager()
 
-        game = Game(screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics, ctrl_score)
+        game = Game(screen, player1, player2, ball, ctrl_player1, ctrl_player2, ctrl_physics, ctrl_score, sound_manager)
         game.run()
 
 if __name__ == "__main__":
