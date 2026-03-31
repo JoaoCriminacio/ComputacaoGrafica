@@ -9,6 +9,10 @@ RACKET_WIDTH=10
 RACKET_HEIGHT=60
 BALL_SIZE=7
 MIN_SPEED_Y = 5
+INTERVAL_MS = 5_000
+DECOY_COUNT = 3
+DEAD_ZONE = 4
+FOLLOW_FACTOR = 0.12
 
 class Player:
     def __init__(self, x, y, width, height):
@@ -76,20 +80,16 @@ class BallFactory:
         return decoys
     
 class MultiplicationTimer:
-    INTERVAL_MS = 5_000
-
     def __init__(self):
         self._last_trigger = pygame.time.get_ticks()
 
     def is_ready(self):
-        return pygame.time.get_ticks() - self._last_trigger >= self.INTERVAL_MS
+        return pygame.time.get_ticks() - self._last_trigger >= INTERVAL_MS
 
     def reset(self):
         self._last_trigger = pygame.time.get_ticks()
 
 class MultiplicationManager:
-    DECOY_COUNT = 3
-
     def __init__(self):
         self._timer = MultiplicationTimer()
 
@@ -100,7 +100,7 @@ class MultiplicationManager:
             return None
 
         self._timer.reset()
-        return BallFactory.create_decoys(ball, count=self.DECOY_COUNT)
+        return BallFactory.create_decoys(ball, count=DECOY_COUNT)
 
 class KeyboardController:
     def update(self, player):
@@ -112,10 +112,19 @@ class KeyboardController:
 
 class CpuController:
     def update(self, player, ball):
-        if player.rect.centery < ball.rect.centery:
-            player.move_down()
-        elif player.rect.centery > ball.rect.centery:
-            player.move_up()
+        diff = ball.rect.centery - player.rect.centery
+
+        if abs(diff) <= DEAD_ZONE:
+            return
+
+        step = max(1, min(player.speed, abs(diff) * FOLLOW_FACTOR))
+
+        if diff > 0:
+            player.rect.y += step
+        else:
+            player.rect.y -= step
+
+        player.rect.y = max(0, min(HEIGHT - player.rect.height, player.rect.y))
 
 class PhysicsManager:
     def __init__(self, multiplication_manager=None):
